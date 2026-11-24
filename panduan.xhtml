@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="id" lang="id">
+<head>
+  <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8" />
+  <title>Panduan &amp; Bantuan LMS - Universitas Atma Jaya Yogyakarta</title>
+  <link rel="stylesheet" type="text/css" href="css/variables.css" />
+  <link rel="stylesheet" type="text/css" href="css/reset.css" />
+  <link rel="stylesheet" type="text/css" href="css/forms-buttons.css" />
+  <link rel="stylesheet" type="text/css" href="css/table-badges.css" />
+</head>
+<body>
+  <div style="max-width: 920px; margin: 28px auto; padding: 0 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+      <div>
+        <h1>Panduan &amp; Layanan Bantuan LMS</h1>
+        <p class="mut">Universitas Atma Jaya Yogyakarta &mdash; Fakultas Teknologi Industri</p>
+      </div>
+      <div>
+        <a class="btn blue" href="dashboard.php">Kembali</a>
+      </div>
+    </div>
+
+    <div class="box">
+      <h2>Tentang Sistem Pembelajaran</h2>
+      <p>
+        Sistem Learning Management System (LMS) ini digunakan untuk mendukung kegiatan perkuliahan
+        antara <strong>Dosen</strong> dan <strong>Mahasiswa</strong>.
+        Melalui halaman ini, pengguna dapat membaca ringkasan hak akses, panduan penggunaan fitur,
+        serta mengirimkan pertanyaan teknis terkait penggunaan aplikasi.
+      </p>
+    </div>
+
+    <div class="box">
+      <h2>Ringkasan Peran dan Fitur Utama</h2>
+      <table>
+        <tr>
+          <th rowspan="2">Peran Pengguna</th>
+          <th colspan="2">Hak Akses &amp; Fitur Utama</th>
+          <th rowspan="2">Keterangan Login</th>
+        </tr>
+        <tr>
+          <th>Pengelolaan Data</th>
+          <th>Aktivitas Akademik</th>
+        </tr>
+        <tr>
+          <td><strong>Dosen</strong></td>
+          <td>Memperbarui profil dan kata sandi akun</td>
+          <td>Membagikan materi, membuat tugas, memperpanjang tenggat, dan memberi nilai</td>
+          <td>Menggunakan <em>NPP</em> atau Email</td>
+        </tr>
+        <tr>
+          <td><strong>Mahasiswa</strong></td>
+          <td>Registrasi mandiri dan pembaruan data profil</td>
+          <td>Melihat jadwal tugas, mengumpulkan berkas, dan memantau rekap nilai</td>
+          <td>Menggunakan <em>NPM</em> atau Email</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="box">
+      <h2>Formulir Bantuan Teknis</h2>
+      <p class="mut">Gunakan formulir berikut untuk melaporkan kendala akun atau pengumpulan tugas.</p>
+      <form method="post" action="dashboard.php">
+        <fieldset style="border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin-bottom: 14px;">
+          <legend style="font-weight: 700; padding: 0 8px; color: #16206b;">Identitas Pelapor</legend>
+          <div class="row2">
+            <label for="nama">Nama Lengkap
+              <input type="text" id="nama" name="nama" value="" />
+            </label>
+            <label for="nomor_id">NPM / NPP
+              <input type="text" id="nomor_id" name="nomor_id" value="" />
+            </label>
+          </div>
+          <label for="email">Alamat Email
+            <input type="text" id="email" name="email" value="" />
+          </label>
+          <div>
+            <p><strong>Status Pengguna:</strong></p>
+            <label for="p_mhs" style="display: inline-block; margin-right: 16px;"><input type="radio" id="p_mhs" name="peran" value="mahasiswa" checked="checked" style="width: auto; margin-right: 4px;" /> Mahasiswa</label>
+            <label for="p_dsn" style="display: inline-block;"><input type="radio" id="p_dsn" name="peran" value="dosen" style="width: auto; margin-right: 4px;" /> Dosen</label>
+          </div>
+        </fieldset>
+
+        <fieldset style="border: 1px solid #ddd; border-radius: 10px; padding: 16px; margin-bottom: 14px;">
+          <legend style="font-weight: 700; padding: 0 8px; color: #16206b;">Detail Kendala</legend>
+          <label for="kategori">Kategori Masalah
+            <select id="kategori" name="kategori">
+              <option value="profil" selected="selected">Perubahan Data Profil / Ganti Password</option>
+              <option value="kelas">Pendaftaran Kelas Mata Kuliah</option>
+              <option value="tugas">Unggah Berkas Tugas</option>
+              <option value="nilai">Rekapitulasi Nilai</option>
+            </select>
+          </label>
+          <div>
+            <p><strong>Perangkat yang Digunakan:</strong></p>
+            <label for="dev_pc" style="display: inline-block; margin-right: 16px;"><input type="checkbox" id="dev_pc" name="perangkat[]" value="desktop" checked="checked" style="width: auto; margin-right: 4px;" /> Komputer / Laptop</label>
+            <label for="dev_hp" style="display: inline-block;"><input type="checkbox" id="dev_hp" name="perangkat[]" value="mobile" style="width: auto; margin-right: 4px;" /> Ponsel / Tablet</label>
+          </div>
+          <label for="pesan">Deskripsi Kendala
+            <textarea id="pesan" name="pesan" rows="4" cols="50"></textarea>
+          </label>
+        </fieldset>
+
+        <div>
+          <button type="submit" class="blue">Kirim Laporan</button>
+          <button type="reset" class="gray">Reset Form</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

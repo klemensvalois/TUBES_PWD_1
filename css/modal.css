@@ -1,0 +1,29 @@
+.ov {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .25);
+    z-index: 9;
+    padding: 50px 20px;
+    overflow: auto;
+}
+
+.ov.show {
+    display: block;
+}
+
+.modal {
+    background: #fff;
+    max-width: 540px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.tabs a {
+    margin-right: 40px;
+    cursor: pointer;
+}
+
+.tabs a.on {
+    border-bottom: 2px solid var(--amber);
+}

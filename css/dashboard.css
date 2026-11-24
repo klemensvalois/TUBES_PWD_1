@@ -1,0 +1,198 @@
+.split {
+    display: flex;
+    gap: 22px;
+    align-items: flex-start;
+}
+
+.split > .l {
+    flex: 1;
+    min-width: 0;
+}
+
+.split > .panel {
+    width: 300px;
+    flex: none;
+}
+
+.panel {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 28px;
+    padding: 22px 16px;
+}
+
+.panel h2 {
+    color: #fff;
+    padding: 0 6px;
+}
+
+.it {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: rgba(255, 255, 255, .06);
+    border-radius: 20px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.it small {
+    display: block;
+    font-size: 10px;
+    opacity: .8;
+}
+
+.ic {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    font-size: 13px;
+    color: #fff;
+}
+
+.ic.red {
+    background: var(--red);
+}
+
+.ic.blue {
+    background: #1e88ff;
+}
+
+.hello {
+    font-size: 34px;
+    font-weight: 800;
+    margin: 6px 0 4px;
+}
+
+.sub {
+    color: #666;
+    margin-bottom: 18px;
+    max-width: 520px;
+}
+
+.course {
+    display: block;
+    text-decoration: none;
+    background: #fff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .1);
+    margin-bottom: 18px;
+}
+
+.course .hd {
+    height: 100px;
+    background: linear-gradient(90deg, transparent 82%, rgba(0, 0, 0, .1) 82%), repeating-linear-gradient(90deg, rgba(255, 255, 255, .18) 0 70px, transparent 70px 140px), #fdc965;
+}
+
+.course .bd {
+    padding: 14px 18px;
+}
+
+.course b {
+    font-size: 15px;
+}
+
+.course small {
+    display: block;
+    color: #888;
+    font-size: 10px;
+}
+
+.course em {
+    font-style: normal;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--red);
+}
+
+.dgroup {
+    font-weight: 800;
+    margin: 14px 0 8px;
+}
+
+.dl-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #d9f0ee;
+    border-radius: 20px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .08);
+}
+
+.dl-item .tt {
+    flex: 1;
+}
+
+.dl-item .tt small {
+    display: block;
+    color: var(--red);
+    font-size: 10px;
+}
+
+.dl-item .tm {
+    font-size: 10px;
+    color: #777;
+}
+
+.bar2 {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.bar2 select,
+.bar2 input {
+    border-radius: 20px;
+    background: #fff;
+}
+
+.cal {
+    width: 100%;
+    text-align: center;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    background: none;
+}
+
+.cal th {
+    font-size: 10px;
+    background: none;
+}
+
+.cal td {
+    height: 38px;
+    font-size: 11px;
+    color: var(--red);
+    background: none !important;
+}
+
+.cal span {
+    display: inline-flex;
+    width: 30px;
+    height: 30px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.cal .today {
+    background: var(--red);
+    color: #fff;
+}
+
+.cal .mark {
+    border: 2px solid var(--red);
+}
+
+.cal tr:nth-child(even) td {
+    background: none;
+}

@@ -1,0 +1,30 @@
+.main {
+    flex: 1;
+    min-width: 0;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 28px;
+    font-size: 12px;
+}
+
+.tools {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+
+.srch {
+    background: #f1ecea;
+    border-radius: 8px;
+    padding: 5px 12px;
+    color: #aaa;
+    font-size: 11px;
+}
+
+.content {
+    padding: 6px 28px 30px;
+}

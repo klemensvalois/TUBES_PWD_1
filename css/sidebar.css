@@ -1,0 +1,92 @@
+.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+.side {
+    width: 200px;
+    background: var(--navy);
+    color: #fff;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.logo {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 9px;
+    line-height: 1.2;
+    margin: 0 4px 28px;
+}
+
+.logo small {
+    display: block;
+    font-size: 6px;
+    font-weight: 400;
+    margin-top: 2px;
+}
+
+.side ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    flex: 1;
+}
+
+.side li a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    text-decoration: none;
+    padding: 9px 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    font-size: 12px;
+}
+
+.side li a i {
+    font-style: normal;
+    width: 16px;
+    text-align: center;
+}
+
+.side li a.on {
+    background: var(--amber);
+}
+
+.me {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    font-size: 10px;
+}
+
+.me small {
+    display: block;
+    font-size: 7px;
+    opacity: .85;
+}
+
+.me small a {
+    color: var(--amber);
+}
+
+.av {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--navy);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    flex: none;
+}

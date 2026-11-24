@@ -1,0 +1,142 @@
+.card,
+.box {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .07);
+    padding: 18px;
+    margin-bottom: 18px;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #555;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-top: 4px;
+    font: inherit;
+    background: #fff;
+}
+
+button,
+.btn {
+    background: var(--amber);
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font: inherit;
+    font-size: 12px;
+}
+
+button.del,
+.btn.del {
+    background: #ff4d4f;
+}
+
+.btn.blue,
+button.blue {
+    background: var(--blue);
+}
+
+.btn.gray,
+button.gray {
+    background: #eee;
+    color: #333;
+}
+
+.link {
+    color: #1e6ab8;
+    font-size: 12px;
+    text-decoration: none;
+    margin-right: 14px;
+}
+
+.row2 {
+    display: flex;
+    gap: 12px;
+}
+
+.row2 > * {
+    flex: 1;
+}
+
+.tbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.tbar .s {
+    flex: 1;
+    background: #f6f1ef;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.tbar .s input {
+    background: none;
+    border: 0;
+    margin: 0;
+}
+
+.submit-tugas-form {
+    margin-top: 12px;
+}
+
+.submit-tugas-form label {
+    margin-bottom: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #444;
+}
+
+.submit-tugas-form input[type="file"] {
+    width: 100%;
+    padding: 8px 10px;
+    background: #fafafa;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.submit-tugas-form input[type="text"] {
+    width: 100%;
+    padding: 9px 12px;
+    margin-top: 6px;
+}
+
+.submit-tugas-form button[type="submit"] {
+    margin-top: 4px;
+    padding: 9px 18px;
+    font-weight: 600;
+}
+
+td form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+td form input[type="text"] {
+    width: auto;
+    margin-top: 0;
+    padding: 6px 10px;
+}
+
+td form button[type="submit"] {
+    padding: 6px 14px;
+}
