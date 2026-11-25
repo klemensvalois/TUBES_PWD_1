@@ -17,16 +17,11 @@ $posts = [
 ];
 
 echo '<div class="blog">';
-foreach ($posts as $post) {
-    $kategori = $post[0];
-    $judul    = $post[1];
-    $gambar   = $post[2];
-    $url_img  = BASE . '/images/' . $gambar;
-
+foreach ($posts as $p) {
     echo '<div>';
-    echo '<div class="img"><img src="' . e($url_img) . '" alt="' . e($judul) . '" /></div>';
-    echo '<small>' . e($kategori) . ' &middot; 13 March 2023</small>';
-    echo '<h3>' . e($judul) . '</h3>';
+    echo '<div class="img"><img src="' . BASE . '/images/' . e($p[2]) . '" alt="' . e($p[1]) . '" /></div>';
+    echo '<small>' . e($p[0]) . ' &middot; 13 March 2023</small>';
+    echo '<h3>' . e($p[1]) . '</h3>';
     echo '<p>Capitalize on low hanging fruit to identify a ballpark value added activity to beta test. Override the digital divide with additional clickthroughs.</p>';
     echo '<a href="#">Read More...</a>';
     echo '</div>';
@@ -34,3 +29,4 @@ foreach ($posts as $post) {
 echo '</div>';
 
 bottom();
+?>

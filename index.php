@@ -5,106 +5,25 @@ if (!empty($_SESSION['u'])) {
 }
 require 'includes/layout.php';
 
-function find_login_user($role, $loginId)
-{
-    $roleMap = [
-        'mahasiswa' => [
-            'db'     => 'lms_mahasiswa',
-            'tables' => ['mahasiswa', 'users', 'akun'],
-            'cols'   => ['npm', 'nim', 'username', 'email'],
-        ],
-        'dosen' => [
-            'db'     => 'lms_dosen',
-            'tables' => ['dosen', 'users', 'akun'],
-            'cols'   => ['npp', 'nip', 'username', 'email'],
-        ],
-        'admin' => [
-            'db'     => 'lms_admin',
-            'tables' => ['admin', 'users', 'akun'],
-            'cols'   => ['username', 'email', 'id'],
-        ],
-    ];
-
-    if (!isset($roleMap[$role])) {
-        return null;
-    }
-
-    $cfg    = $roleMap[$role];
-    $dbName = $cfg['db'];
-
-    foreach ($cfg['tables'] as $tbl) {
-        try {
-            $colStmt = q("SHOW COLUMNS FROM `{$dbName}`.`{$tbl}`");
-            $columns = array_column($colStmt->fetchAll(), 'Field');
-        } catch (Throwable $e) {
-            continue;
-        }
-
-        if (empty($columns)) {
-            continue;
-        }
-
-        $matchCols = [];
-        $params    = [];
-        foreach ($cfg['cols'] as $c) {
-            if (in_array($c, $columns, true)) {
-                $matchCols[] = "`{$c}` = ?";
-                $params[]    = $loginId;
-            }
-        }
-
-        if (empty($matchCols)) {
-            continue;
-        }
-
-        $sql = "SELECT * FROM `{$dbName}`.`{$tbl}` WHERE (" . implode(' OR ', $matchCols) . ") LIMIT 1";
-        $row = q($sql, $params)->fetch();
-        if ($row) {
-            if (empty($row['role'])) {
-                $row['role'] = $role;
-            }
-            return $row;
-        }
-    }
-
-    return null;
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     chk();
+    $role     = $_POST['role'] ?? '';
+    $login_id = trim($_POST['login_id'] ?? '');
+    $password = $_POST['password'] ?? '';
 
-    $role     = isset($_POST['role']) ? strtolower(trim($_POST['role'])) : '';
-    $login_id = isset($_POST['login_id']) ? trim($_POST['login_id']) : '';
-    $password = isset($_POST['password']) ? $_POST['password'] : '';
-
-    if ($role === '' || $login_id === '' || $password === '') {
-        flash('Lengkapi peran, ID/email, dan password terlebih dahulu.');
-        go('index.php');
+    $user = null;
+    if ($role === 'mahasiswa') {
+        $user = q("SELECT * FROM lms_mahasiswa.mahasiswa WHERE npm=? OR email=?", [$login_id, $login_id])->fetch();
+    } elseif ($role === 'dosen') {
+        $user = q("SELECT * FROM lms_dosen.dosen WHERE npp=? OR email=?", [$login_id, $login_id])->fetch();
+    } elseif ($role === 'admin') {
+        $user = q("SELECT * FROM lms_admin.admin WHERE username=? OR email=?", [$login_id, $login_id])->fetch();
     }
 
-    $row   = find_login_user($role, $login_id);
-    $valid = false;
-
-    if ($row) {
-        $passCol = null;
-        foreach (['password', 'password_hash', 'pass', 'kata_sandi'] as $cand) {
-            if (array_key_exists($cand, $row)) {
-                $passCol = $cand;
-                break;
-            }
-        }
-
-        if ($passCol !== null) {
-            $stored = (string) $row[$passCol];
-            $valid  = password_verify($password, $stored)
-                   || hash_equals($stored, $password)
-                   || (strlen($stored) === 32 && hash_equals(strtolower($stored), md5($password)));
-        }
-    }
-
-    if ($valid && $row) {
-        unset($row['password'], $row['password_hash'], $row['pass'], $row['kata_sandi']);
-        $_SESSION['u'] = $row;
+    if ($user && (password_verify($password, $user['password']) || $password === $user['password'])) {
+        unset($user['password']);
+        $user['role'] = $role;
+        $_SESSION['u'] = $user;
         go('dashboard.php');
     }
 
@@ -139,9 +58,9 @@ $pesan = flash();
         <input type="password" id="password" name="password" value="" />
     </label>
 
-    <?php if ($pesan): ?>
+    <?php if ($pesan) { ?>
         <div class="flash bad"><?php echo e($pesan); ?></div>
-    <?php endif; ?>
+    <?php } ?>
 
     <button type="submit">Login</button>
 </form>
@@ -150,3 +69,4 @@ $pesan = flash();
 
 <?php
 bottom();
+?>
