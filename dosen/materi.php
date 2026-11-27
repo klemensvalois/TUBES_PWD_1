@@ -7,25 +7,30 @@ $id_dosen = $_SESSION['u']['id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     chk();
-    $post = $_POST;
-    $aksi = isset($post['a']) ? $post['a'] : '';
+    $aksi = $_POST['a'] ?? '';
 
     if ($aksi === 'add') {
-        $id_kelas = (int) $post['kelas'];
-        $milik    = q("SELECT 1 FROM lms_admin.kelas WHERE id=? AND dosen_id=?", [$id_kelas, $id_dosen])->fetch();
-        if ($milik) {
+        $id_kelas = (int) ($_POST['kelas'] ?? 0);
+        $judul    = trim($_POST['judul'] ?? '');
+        $isi      = trim($_POST['isi'] ?? '');
+
+        $milik = q("SELECT 1 FROM lms_admin.kelas WHERE id=? AND dosen_id=?", [$id_kelas, $id_dosen])->fetch();
+        if ($milik && $judul !== '') {
             q("INSERT INTO lms_dosen.materi(kelas_id, dosen_id, judul, isi) VALUES(?, ?, ?, ?)",
-              [$id_kelas, $id_dosen, trim($post['judul']), $post['isi']]);
+              [$id_kelas, $id_dosen, $judul, $isi]);
+            flash('Materi berhasil dibagikan.');
+        } else {
+            flash('Kelas tidak valid atau judul masih kosong.');
         }
     } elseif ($aksi === 'del') {
-        q("DELETE FROM lms_dosen.materi WHERE id=? AND dosen_id=?", [(int) $post['i'], $id_dosen]);
+        q("DELETE FROM lms_dosen.materi WHERE id=? AND dosen_id=?", [(int) ($_POST['i'] ?? 0), $id_dosen]);
+        flash('Materi dihapus.');
     }
 
-    flash('Berhasil.');
     go('dosen/materi.php');
 }
 
-$kelas_dosen  = q("SELECT * FROM lms_admin.kelas WHERE dosen_id=?", [$id_dosen])->fetchAll();
+$kelas_dosen   = q("SELECT * FROM lms_admin.kelas WHERE dosen_id=?", [$id_dosen])->fetchAll();
 $daftar_materi = q("SELECT m.*, k.nama AS kelas
                     FROM lms_dosen.materi m
                     JOIN lms_admin.kelas k ON k.id = m.kelas_id
@@ -39,11 +44,9 @@ top('Materi', 'dosen/materi.php');
     <input type="hidden" name="a" value="add" />
     <label>Kelas
         <select name="kelas">
-            <?php
-            foreach ($kelas_dosen as $k) {
-                echo '<option value="' . $k['id'] . '">' . e($k['nama']) . '</option>';
-            }
-            ?>
+            <?php foreach ($kelas_dosen as $k) { ?>
+                <option value="<?php echo $k['id']; ?>"><?php echo e($k['nama']); ?></option>
+            <?php } ?>
         </select>
     </label>
     <label>Judul <input type="text" name="judul" required="required" /></label>

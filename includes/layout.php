@@ -1,8 +1,4 @@
 <?php
-/**
- * includes/layout.php
- * Kerangka halaman (sidebar, topbar) dan komponen yang dipakai ulang: panel, kalender, halaman login.
- */
 
 function ini($name)
 {
@@ -38,7 +34,7 @@ function menu($role)
         ];
     }
 
-    $hal_dashboard = ($role === 'dosen') ? 'dosen/tugas.php' : 'mahasiswa/dashboard.php';
+    $hal_dashboard = ($role === 'dosen') ? 'dosen/kelas.php' : 'mahasiswa/kelas.php';
     $menu = [
         'dashboard.php' => ['Home', '&#8962;'],
         $hal_dashboard  => ['Dashboard', '&#9635;'],
@@ -46,8 +42,7 @@ function menu($role)
     ];
 
     if ($role === 'dosen') {
-        $menu['dosen/materi.php'] = ['Materi', '&#9780;'];
-        $menu['dosen/nilai.php']  = ['Grades', '&#9780;'];
+        $menu['dosen/nilai.php'] = ['Grades', '&#9780;'];
     } else {
         $menu['mahasiswa/grades.php'] = ['Grades', '&#9780;'];
     }
@@ -81,24 +76,39 @@ function top($title, $active, $showTitle = true, $extraCss = [])
     echo '<link rel="stylesheet" type="text/css" href="' . BASE . '/css/profile.css" />';
     echo '<link rel="stylesheet" type="text/css" href="' . BASE . '/css/blog.css" />';
     echo '<link rel="stylesheet" type="text/css" href="' . BASE . '/css/auth.css" />';
-    foreach ($extraCss as $cssFile) {
-        echo '<link rel="stylesheet" type="text/css" href="' . BASE . '/css/' . e($cssFile) . '" />';
+    $n_css = count($extraCss);
+    for ($i = 0; $i < $n_css; $i++) {
+        echo '<link rel="stylesheet" type="text/css" href="' . BASE . '/css/' . e($extraCss[$i]) . '" />';
     }
     echo '</head><body><div class="app">';
 
-    echo '<div class="side">';
-    echo '<div class="logo"><img src="' . BASE . '/images/UAJY-LOGOGRAM_-01.png" alt="Logo UAJY" width="36" height="36" />';
-    echo '<div><b>UNIVERSITAS<br />ATMA JAYA YOGYAKARTA</b><small>servians in lumine veritatis</small></div></div><ul>';
-    foreach ($menu as $url => $item) {
+    echo '<aside class="side">';
+    echo '<div class="logo">';
+    echo '<img src="' . BASE . '/images/UAJY-LOGOGRAM_-01.png" alt="Logo UAJY" width="36" height="36" />';
+    echo '<div><b>UNIVERSITAS<br />ATMA JAYA YOGYAKARTA</b><small>servians in lumine veritatis</small></div>';
+    echo '</div>';
+    echo '<ul>';
+    $urls = array_keys($menu);
+    $n_m  = count($urls);
+    for ($i = 0; $i < $n_m; $i++) {
+        $url   = $urls[$i];
+        $item  = $menu[$url];
         $class = ($url === $active) ? ' class="on"' : '';
         echo '<li><a href="' . BASE . '/' . $url . '"' . $class . '><i>' . $item[1] . '</i>' . $item[0] . '</a></li>';
     }
-    echo '</ul><div class="me"><span class="av">' . e(ini($user['nama'])) . '</span><div>' . e($user['nama']);
-    echo '<small>' . $sub . ' | <a href="' . BASE . '/logout.php">Log out</a></small></div></div></div>';
+    echo '</ul>';
+    echo '<div class="me" style="padding:10px 14px;gap:10px;align-items:center;">';
+    echo '<span class="av" style="width:34px;height:34px;line-height:34px;font-size:13px;flex-shrink:0;">' . e(ini($user['nama'])) . '</span>';
+    echo '<div style="font-size:13px;line-height:1.3;">' . e($user['nama']) . '<small style="display:block;font-size:11px;margin-top:2px;">' . $sub . ' | <a href="' . BASE . '/logout.php">Log out</a></small></div>';
+    echo '</div>';
+    echo '</aside>';
 
-    echo '<div class="main"><div class="topbar">';
+    echo '<main class="main">';
+    echo '<header class="topbar">';
     echo '<span class="bc">&#9647; &nbsp;&#9734; &nbsp;&nbsp;<span class="mut">' . e($label) . '</span> &nbsp;/&nbsp; Overview</span>';
-    echo '<span class="tools"><span class="srch">Search &nbsp;&nbsp;&#8984;K</span> &#9788; &#8634; &#9750;</span></div><div class="content">';
+    echo '<span class="tools"><span class="srch">Search &nbsp;&nbsp;&#8984;K</span> &#9788; &#8634; &#9750;</span>';
+    echo '</header>';
+    echo '<div class="content">';
 
     if ($showTitle) {
         echo '<h1>' . e($title) . '</h1>';
@@ -111,7 +121,7 @@ function top($title, $active, $showTitle = true, $extraCss = [])
 
 function bottom()
 {
-    echo '</div></div></div>';
+    echo '</div></main></div>';
     echo '<script type="text/javascript" src="' . BASE . '/js/app.js"></script>';
     echo '</body></html>';
 }
@@ -157,19 +167,23 @@ function panel($id, $role)
                      WHERE m.dosen_id = ? ORDER BY m.id DESC LIMIT 4", [$id])->fetchAll();
     }
 
-    echo '<div class="panel"><h2>Baru baru ini di akses</h2>';
-    foreach ($tugas as $x) {
+    echo '<aside class="panel"><h2>Baru baru ini di akses</h2>';
+    $n_t = count($tugas);
+    for ($i = 0; $i < $n_t; $i++) {
+        $x = $tugas[$i];
         echo '<div class="it"><span class="ic red">&#9635;</span><div>' . e($x['judul'])
            . '<small>' . e(date('D, j M, H:i', strtotime($x['dl']))) . '</small></div></div>';
     }
-    foreach ($materi as $x) {
+    $n_m = count($materi);
+    for ($i = 0; $i < $n_m; $i++) {
+        $x = $materi[$i];
         echo '<div class="it"><span class="ic blue">&#9780;</span><div>' . e($x['judul'])
            . '<small>' . e($x['kelas']) . ' &middot; ' . e(date('j M', strtotime($x['dibuat']))) . '</small></div></div>';
     }
     if (!$tugas && !$materi) {
         echo '<div class="it">Belum ada aktivitas.</div>';
     }
-    echo '</div>';
+    echo '</aside>';
 }
 
 function cal($marks)

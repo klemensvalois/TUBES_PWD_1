@@ -5,63 +5,61 @@ require '../includes/layout.php';
 
 $id_dosen = $_SESSION['u']['id'];
 
-function cek_kelas_milik($id_kelas, $id_dosen)
-{
-    return (bool) q("SELECT 1 FROM lms_admin.kelas WHERE id=? AND dosen_id=?", [$id_kelas, $id_dosen])->fetch();
-}
-
-function cek_tugas_milik($id_tugas, $id_dosen)
-{
-    return (bool) q("SELECT 1 FROM lms_dosen.tugas WHERE id=? AND dosen_id=?", [$id_tugas, $id_dosen])->fetch();
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     chk();
-    $post = $_POST;
-    $aksi = isset($post['a']) ? $post['a'] : '';
+    $aksi = $_POST['a'] ?? '';
 
     try {
         if ($aksi === 'add' || $aksi === 'upd') {
-            $ts_dl = strtotime($post['dl']);
-            if (!$ts_dl) {
-                throw new Exception('Deadline tidak valid.');
+            $judul = trim($_POST['judul'] ?? '');
+            $desc  = trim($_POST['desc'] ?? '');
+            $ts_dl = strtotime($_POST['dl'] ?? '');
+
+            if ($judul === '' || !$ts_dl) {
+                throw new Exception('Judul dan deadline wajib diisi dengan benar.');
             }
             $dl_sql = date('Y-m-d H:i:s', $ts_dl);
 
             if ($aksi === 'add') {
-                $id_kelas = (int) $post['kelas'];
-                if (!cek_kelas_milik($id_kelas, $id_dosen)) {
+                $id_kelas = (int) ($_POST['kelas'] ?? 0);
+                $milik    = q("SELECT 1 FROM lms_admin.kelas WHERE id=? AND dosen_id=?", [$id_kelas, $id_dosen])->fetch();
+                if (!$milik) {
                     throw new Exception('Bukan kelas Anda.');
                 }
                 q("INSERT INTO lms_dosen.tugas(kelas_id, dosen_id, judul, deskripsi, deadline) VALUES(?, ?, ?, ?, ?)",
-                  [$id_kelas, $id_dosen, trim($post['judul']), $post['desc'], $dl_sql]);
+                  [$id_kelas, $id_dosen, $judul, $desc, $dl_sql]);
             } else {
                 q("UPDATE lms_dosen.tugas SET judul=?, deskripsi=?, deadline=? WHERE id=? AND dosen_id=?",
-                  [trim($post['judul']), $post['desc'], $dl_sql, (int) $post['i'], $id_dosen]);
+                  [$judul, $desc, $dl_sql, (int) ($_POST['i'] ?? 0), $id_dosen]);
             }
         } elseif ($aksi === 'del') {
-            q("DELETE FROM lms_dosen.tugas WHERE id=? AND dosen_id=?", [(int) $post['i'], $id_dosen]);
+            q("DELETE FROM lms_dosen.tugas WHERE id=? AND dosen_id=?", [(int) ($_POST['i'] ?? 0), $id_dosen]);
         } elseif ($aksi === 'ext') {
-            $id_tugas = (int) $post['i'];
-            $ts_dl    = strtotime($post['dl']);
-            if (!cek_tugas_milik($id_tugas, $id_dosen) || !$ts_dl) {
-                throw new Exception('Data tidak valid.');
+            $id_tugas = (int) ($_POST['i'] ?? 0);
+            $ts_dl    = strtotime($_POST['dl'] ?? '');
+            $dicari   = trim($_POST['who'] ?? '');
+            $alasan   = trim($_POST['alasan'] ?? '');
+
+            $tugas = q("SELECT id FROM lms_dosen.tugas WHERE id=? AND dosen_id=?", [$id_tugas, $id_dosen])->fetch();
+            if (!$tugas || !$ts_dl || $dicari === '') {
+                throw new Exception('Data perpanjangan tidak valid.');
             }
-            $dicari = trim($post['who']);
-            $mhs    = q("SELECT m.id
-                       FROM lms_mahasiswa.mahasiswa m
-                       JOIN lms_admin.kelas_mhs km ON km.mhs_id = m.id
-                       JOIN lms_dosen.tugas t ON t.kelas_id = km.kelas_id AND t.id=?
-                       WHERE m.npm=? OR m.email=?", [$id_tugas, $dicari, $dicari])->fetch();
+
+            $mhs = q("SELECT m.id
+                      FROM lms_mahasiswa.mahasiswa m
+                      JOIN lms_admin.kelas_mhs km ON km.mhs_id = m.id
+                      JOIN lms_dosen.tugas t ON t.kelas_id = km.kelas_id AND t.id=?
+                      WHERE m.npm=? OR m.email=?", [$id_tugas, $dicari, $dicari])->fetch();
             if (!$mhs) {
-                throw new Exception('Mahasiswa tidak ditemukan / tidak terdaftar di kelas tugas ini.');
+                throw new Exception('Mahasiswa tidak ditemukan atau tidak terdaftar di kelas tugas ini.');
             }
+
             q("INSERT INTO lms_dosen.perpanjangan(tugas_id, mhs_id, deadline_baru, alasan) VALUES(?, ?, ?, ?)",
-              [$id_tugas, $mhs['id'], date('Y-m-d H:i:s', $ts_dl), trim($post['alasan'])]);
+              [$id_tugas, $mhs['id'], date('Y-m-d H:i:s', $ts_dl), $alasan]);
         } elseif ($aksi === 'delext') {
             q("DELETE p FROM lms_dosen.perpanjangan p
                JOIN lms_dosen.tugas t ON t.id = p.tugas_id
-               WHERE p.id=? AND t.dosen_id=?", [(int) $post['i'], $id_dosen]);
+               WHERE p.id=? AND t.dosen_id=?", [(int) ($_POST['i'] ?? 0), $id_dosen]);
         }
 
         flash('Berhasil disimpan.');
@@ -80,9 +78,9 @@ $daftar_tugas = q("SELECT t.*, k.nama AS kelas
                    WHERE t.dosen_id=?
                    ORDER BY t.deadline DESC", [$id_dosen])->fetchAll();
 
-$val_id    = isset($data_edit['id']) ? $data_edit['id'] : '';
-$val_judul = isset($data_edit['judul']) ? $data_edit['judul'] : '';
-$val_desc  = isset($data_edit['deskripsi']) ? $data_edit['deskripsi'] : '';
+$val_id    = $data_edit['id'] ?? '';
+$val_judul = $data_edit['judul'] ?? '';
+$val_desc  = $data_edit['deskripsi'] ?? '';
 $val_dl    = isset($data_edit['deadline']) ? date('Y-m-d\TH:i', strtotime($data_edit['deadline'])) : '';
 
 top('Tugas & Deadline', 'dosen/tugas.php');
@@ -95,11 +93,9 @@ top('Tugas & Deadline', 'dosen/tugas.php');
     <?php if (!$data_edit) { ?>
         <label>Kelas
             <select name="kelas">
-                <?php
-                foreach ($daftar_kelas as $k) {
-                    echo '<option value="' . $k['id'] . '">' . e($k['nama']) . '</option>';
-                }
-                ?>
+                <?php foreach ($daftar_kelas as $k) { ?>
+                    <option value="<?php echo $k['id']; ?>"><?php echo e($k['nama']); ?></option>
+                <?php } ?>
             </select>
         </label>
     <?php } ?>

@@ -47,7 +47,7 @@ $first = explode(' ', $u['nama'])[0];
 echo '<div class="split"><div class="l"><div class="hello">Halo, Selamat ' . $sal . ' ' . e($first) . '</div><div class="sub">Kamu sudah berhasil melewati semester-semester sebelumnya; tantangan hari ini juga pasti lewat.</div>';
 
 foreach ($ks as $k) {
-    $href = BASE . ($u['role'] === 'dosen' ? '/dosen/tugas.php' : '/mahasiswa/tugas.php?k=' . $k['id']);
+    $href = BASE . ($u['role'] === 'dosen' ? '/dosen/kelas.php?id=' . (int) $k['id'] : '/mahasiswa/kelas.php?id=' . (int) $k['id']);
     echo '<a class="course" href="' . $href . '"><div class="hd"></div><div class="bd"><b>' . e($k['nama']) . ' (' . e($k['tahun_ajaran']) . ')</b><small>' . e($k['nama']) . ' (' . e($k['tahun_ajaran']) . ')</small><em>Dosen: ' . e($k['dosen']) . '</em></div></a>';
 }
 
