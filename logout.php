@@ -1,5 +1,6 @@
 <?php
 require 'config.php';
+session_unset();
 session_destroy();
-go('index.php');
+go('index.xhtml');
 ?>
