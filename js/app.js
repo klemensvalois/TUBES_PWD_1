@@ -389,22 +389,86 @@
             formCrop.submit();
         };
 
-        // Aksi Lihat foto
+       // Aksi Lihat foto: animasi dari posisi avatar profil ke tengah layar
         if (aksiLihat && modalLihat) {
+            var imgLihat = modalLihat.getElementsByTagName("img")[0];
+            var sedangMenutup = false;
+            var timerTutup = null;
+
+            function posisiTengah() {
+                var uk = 300;
+                return {
+                    x: Math.round((window.innerWidth - uk) / 2),
+                    y: Math.round((window.innerHeight - uk) / 2)
+                };
+            }
+
+            function animasiKeAvatar() {
+                if (!imgLihat || sedangMenutup) {
+                    modalLihat.className = "modal-bg";
+                    return;
+                }
+                sedangMenutup = true;
+                clearTimeout(timerTutup);
+
+                var rect = btnAvatar.getBoundingClientRect();
+                var uk = 300;
+                var skala = rect.width / uk;
+
+                imgLihat.style.transition = "transform 0.3s ease";
+                imgLihat.style.transform = "translate(" + rect.left + "px, " + rect.top + "px) scale(" + skala + ")";
+                modalLihat.style.backgroundColor = "rgba(0, 0, 0, 0)";
+
+                timerTutup = setTimeout(function () {
+                    modalLihat.className = "modal-bg";
+                    modalLihat.style.backgroundColor = "";
+                    imgLihat.style.transition = "none";
+                    imgLihat.style.transform = "";
+                    sedangMenutup = false;
+                }, 310);
+            }
+
             aksiLihat.onclick = function () {
                 menuFoto.className = "menu-foto";
+                if (!imgLihat) {
+                    modalLihat.className = "modal-bg tampil";
+                    return;
+                }
+
+                clearTimeout(timerTutup);
+                sedangMenutup = false;
+
+                var rect = btnAvatar.getBoundingClientRect();
+                var uk = 300;
+                var skala = rect.width / uk;
+                var tengah = posisiTengah();
+
+                // 1. Tampilkan modal & pasang posisi awal tepat di atas avatar tanpa transisi
+                imgLihat.style.transition = "none";
+                imgLihat.style.transform = "translate(" + rect.left + "px, " + rect.top + "px) scale(" + skala + ")";
+                modalLihat.style.backgroundColor = "rgba(0, 0, 0, 0)";
                 modalLihat.className = "modal-bg tampil";
+
+                // 2. Di frame berikutnya, aktifkan transisi lalu geser ke tengah layar
+                requestAnimationFrame(function () {
+                    requestAnimationFrame(function () {
+                        imgLihat.style.transition = "transform 0.35s ease";
+                        imgLihat.style.transform = "translate(" + tengah.x + "px, " + tengah.y + "px) scale(1)";
+                        modalLihat.style.backgroundColor = "rgba(0, 0, 0, 0.72)";
+                    });
+                });
             };
-            btnTutupLht.onclick = function () {
-                modalLihat.className = "modal-bg";
-            };
+
+            if (btnTutupLht) {
+                btnTutupLht.onclick = animasiKeAvatar;
+            }
+
             modalLihat.onclick = function (e) {
                 if (e.target === modalLihat) {
-                    modalLihat.className = "modal-bg";
+                    animasiKeAvatar();
                 }
             };
         }
-
         // Aksi Hapus foto
         if (aksiHapus) {
             aksiHapus.onclick = function () {

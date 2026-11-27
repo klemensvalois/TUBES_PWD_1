@@ -449,3 +449,66 @@
     background-color: #1f8e4d;
     color: #ffffff;
 }
+/* ===== Modal Lihat Foto (Animasi ke Tengah & Tetap Bulat) ===== */
+#modal-lihat.modal-bg {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 999;
+    transition: background-color 0.3s ease;
+}
+
+#modal-lihat.modal-bg.tampil {
+    display: block;
+    background-color: rgba(0, 0, 0, 0.72);
+}
+
+#modal-lihat .lihat-img {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 300px;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #ffffff;
+    box-sizing: border-box;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    transform-origin: 0 0;
+    z-index: 1000;
+    transition: transform 0.35s ease;
+}
+
+#modal-lihat button.lihat-close {
+    position: fixed;
+    top: 24px;
+    right: 28px;
+    width: 40px;
+    height: 40px;
+    line-height: 38px;
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+    border-radius: 50%;
+    border: none;
+    background-color: #ffffff;
+    color: #222222;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+}
+
+#modal-lihat button.lihat-close:hover {
+    background-color: #f3f4f6;
+}
