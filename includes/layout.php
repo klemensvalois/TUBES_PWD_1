@@ -34,7 +34,7 @@ function menu($role)
         ];
     }
 
-    $hal_dashboard = ($role === 'dosen') ? 'dosen/kelas.php' : 'mahasiswa/kelas.php';
+    $hal_dashboard = ($role === 'dosen') ? 'dosen/kelas.php' : 'mahasiswa/dashboard.php';
     $menu = [
         'dashboard.php' => ['Home', '&#8962;'],
         $hal_dashboard  => ['Dashboard', '&#9635;'],

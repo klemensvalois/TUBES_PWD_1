@@ -26,13 +26,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $kelas) {
     $dir      = dirname(__DIR__) . '/uploads/tugas';
 
     if ($aksi === 'kumpul') {
-        $cek_t   = q("SELECT id FROM lms_dosen.tugas WHERE id=? AND kelas_id=?", [$id_tugas, $id_kelas])->fetch();
+        $cek_t = q("SELECT t.id, " . DL . " AS dl
+                    FROM lms_dosen.tugas t
+                    WHERE t.id=? AND t.kelas_id=?", [$id_mhs, $id_tugas, $id_kelas])->fetch();
         $catatan = trim($_POST['catatan'] ?? '');
         $ext     = '';
         $ada_f   = !empty($_FILES['berkas']['name']) && (int) $_FILES['berkas']['error'] === UPLOAD_ERR_OK;
 
         if (!$cek_t) {
             flash('Tugas tidak ditemukan.');
+        } elseif (strtotime($cek_t['dl']) < time()) {
+            flash('Deadline sudah lewat.');
         } elseif ($catatan === '' && !$ada_f) {
             flash('Isi catatan atau pilih file tugas dulu.');
         } else {
@@ -78,14 +82,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $kelas) {
             flash('Tugas berhasil dikumpulkan.');
         }
     } elseif ($aksi === 'batal') {
-        $lama = glob($dir . '/t_' . $id_tugas . '_mhs_' . $id_mhs . '.*');
-        for ($k = 0; $k < count($lama); $k++) {
-            if (is_file($lama[$k])) {
-                unlink($lama[$k]);
+        $cek_t = q("SELECT t.id, " . DL . " AS dl
+                    FROM lms_dosen.tugas t
+                    WHERE t.id=? AND t.kelas_id=?", [$id_mhs, $id_tugas, $id_kelas])->fetch();
+        if (!$cek_t) {
+            flash('Tugas tidak ditemukan.');
+        } elseif (strtotime($cek_t['dl']) < time()) {
+            flash('Deadline sudah lewat, pengumpulan tidak bisa dihapus.');
+        } else {
+            $lama = glob($dir . '/t_' . $id_tugas . '_mhs_' . $id_mhs . '.*');
+            for ($k = 0; $k < count($lama); $k++) {
+                if (is_file($lama[$k])) {
+                    unlink($lama[$k]);
+                }
             }
+            q("DELETE FROM lms_mahasiswa.pengumpulan WHERE tugas_id=? AND mhs_id=?", [$id_tugas, $id_mhs]);
+            flash('Pengumpulan tugas dihapus.');
         }
-        q("DELETE FROM lms_mahasiswa.pengumpulan WHERE tugas_id=? AND mhs_id=?", [$id_tugas, $id_mhs]);
-        flash('Pengumpulan tugas dihapus.');
     }
 
     go('mahasiswa/kelas.php?id=' . $id_kelas);
@@ -103,11 +116,11 @@ $jml_week = max(1, (int) ($kelas['jml_week'] ?? 1));
 $buka_t   = isset($_GET['kumpul']) ? (int) $_GET['kumpul'] : 0;
 
 $materi = q("SELECT * FROM lms_dosen.materi WHERE kelas_id=? ORDER BY id ASC", [$id_kelas])->fetchAll();
-$tugas  = q("SELECT t.*, p.file AS f_kumpul, p.catatan, p.waktu
+$tugas  = q("SELECT t.*, " . DL . " AS dl, p.file AS f_kumpul, p.catatan, p.waktu
              FROM lms_dosen.tugas t
              LEFT JOIN lms_mahasiswa.pengumpulan p ON p.tugas_id = t.id AND p.mhs_id = ?
              WHERE t.kelas_id=?
-             ORDER BY t.id ASC", [$id_mhs, $id_kelas])->fetchAll();
+             ORDER BY t.id ASC", [$id_mhs, $id_mhs, $id_kelas])->fetchAll();
 
 $n_m = count($materi);
 $n_t = count($tugas);
@@ -149,30 +162,40 @@ for ($w = 1; $w <= $jml_week; $w++) {
             $t = $tugas[$i];
             if ((int) $t['week'] === $w) {
                 $ada_isi = true;
+                $tid     = (int) $t['id'];
                 $sudah   = !empty($t['waktu']);
+                $ts_dl   = strtotime($t['dl']);
+                $lewat   = ($ts_dl < time());
+                $ada_ext = ($t['dl'] !== $t['deadline']);
                 ?>
                 <div style="margin-top:10px;padding-top:8px;border-top:1px solid #eee">
                     <div style="display:flex;justify-content:space-between;align-items:center">
                         <div>
                             <span class="tag late">Tugas</span> <b><?php echo e($t['judul']); ?></b>
-                            <small>(Deadline: <?php echo e($t['deadline']); ?>)</small>
+                            <small>(Deadline: <?php echo e($t['dl']); ?>)</small>
+                            <?php if ($ada_ext) { ?>
+                                <span class="tag ext">Waktu tambahan dari dosen</span>
+                            <?php } ?>
                             <?php if ($sudah) { ?>
                                 <span class="tag">Sudah Dikumpul</span>
                             <?php } ?>
+                            <?php echo $lewat ? '<span class="tag late">Lewat</span>' : '<span class="cd" data-dl="' . ($ts_dl * 1000) . '"></span>'; ?>
                         </div>
-                        <div>
-                            <a class="btn" href="kelas.php?id=<?php echo $id_kelas; ?>&amp;kumpul=<?php echo (int) $t['id']; ?>">
-                                <?php echo $sudah ? 'Edit Tugas' : 'Kumpul Tugas'; ?>
-                            </a>
-                            <?php if ($sudah) { ?>
-                                <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" style="display:inline;margin-left:4px">
-                                    <?php echo csrf(); ?>
-                                    <input type="hidden" name="a" value="batal" />
-                                    <input type="hidden" name="tugas_id" value="<?php echo (int) $t['id']; ?>" />
-                                    <button class="del" type="submit">Hapus</button>
-                                </form>
-                            <?php } ?>
-                        </div>
+                        <?php if (!$lewat) { ?>
+                            <div>
+                                <a class="btn" href="kelas.php?id=<?php echo $id_kelas; ?>&amp;kumpul=<?php echo $tid; ?>">
+                                    <?php echo $sudah ? 'Edit Tugas' : 'Kumpul Tugas'; ?>
+                                </a>
+                                <?php if ($sudah) { ?>
+                                    <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" style="display:inline;margin-left:4px">
+                                        <?php echo csrf(); ?>
+                                        <input type="hidden" name="a" value="batal" />
+                                        <input type="hidden" name="tugas_id" value="<?php echo $tid; ?>" />
+                                        <button class="del" type="submit">Hapus</button>
+                                    </form>
+                                <?php } ?>
+                            </div>
+                        <?php } ?>
                     </div>
 
                     <?php if ($t['deskripsi'] !== '') { ?>
@@ -189,11 +212,11 @@ for ($w = 1; $w <= $jml_week; $w++) {
                         <?php } ?>
                     <?php } ?>
 
-                    <?php if ($buka_t === (int) $t['id']) { ?>
+                    <?php if (!$lewat && $buka_t === $tid) { ?>
                         <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" enctype="multipart/form-data" class="card" style="margin-top:10px">
                             <?php echo csrf(); ?>
                             <input type="hidden" name="a" value="kumpul" />
-                            <input type="hidden" name="tugas_id" value="<?php echo (int) $t['id']; ?>" />
+                            <input type="hidden" name="tugas_id" value="<?php echo $tid; ?>" />
                             <b>Input Tugas: <?php echo e($t['judul']); ?></b>
                             <label>File Tugas <input type="file" name="berkas" /></label>
                             <label>Catatan <textarea name="catatan" rows="2" cols="50"><?php echo e($t['catatan'] ?? ''); ?></textarea></label>
