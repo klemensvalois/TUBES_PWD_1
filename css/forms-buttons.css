@@ -140,3 +140,253 @@ td form input[type="text"] {
 td form button[type="submit"] {
     padding: 6px 14px;
 }
+
+/* === Form Inline Tambah Materi & Tugas (Dosen) === */
+.wk-form-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin: 12px 0 18px 0;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.wk-form-card.is-materi {
+    border-top: 4px solid #1e3a8a;
+}
+
+.wk-form-card.is-tugas {
+    border-top: 4px solid #f59e0b;
+}
+
+.wk-form-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.wk-form-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.wk-badge {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 3px 9px;
+    border-radius: 999px;
+}
+
+.wk-badge.materi {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.wk-badge.tugas {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.wk-close {
+    text-decoration: none;
+    color: #64748b;
+    font-size: 18px;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.wk-close:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.wk-grid-2 {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 14px;
+}
+
+.wk-field {
+    margin-bottom: 14px;
+}
+
+.wk-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+}
+
+.wk-field input[type="text"],
+.wk-field input[type="datetime-local"],
+.wk-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: #0f172a;
+    background: #f8fafc;
+    transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.wk-field input[type="text"]:focus,
+.wk-field input[type="datetime-local"]:focus,
+.wk-field textarea:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: #1e3a8a;
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.12);
+}
+
+.wk-field textarea {
+    min-height: 92px;
+    resize: vertical;
+}
+
+/* Custom Dropzone File Upload */
+.upload-hidden {
+    display: none;
+}
+
+.upload-drop {
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 18px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.upload-drop:hover,
+.upload-drop.dragover {
+    border-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.upload-drop.has-file {
+    border-style: solid;
+    border-color: #22c55e;
+    background: #f0fdf4;
+    text-align: left;
+}
+
+.upload-prompt {
+    font-size: 13px;
+    color: #475569;
+    line-height: 1.5;
+}
+
+.upload-prompt strong {
+    color: #1e3a8a;
+}
+
+.upload-hint {
+    display: block;
+    font-size: 11.5px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+.upload-preview {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.upload-drop.has-file .upload-prompt {
+    display: none;
+}
+
+.upload-drop.has-file .upload-preview {
+    display: flex;
+}
+
+.upload-meta {
+    font-size: 13px;
+    color: #166534;
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.upload-meta small {
+    display: block;
+    font-weight: 400;
+    font-size: 11.5px;
+    color: #475569;
+    margin-top: 2px;
+}
+
+.upload-clear {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.upload-clear:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
+}
+
+/* Footer Tombol Aksi */
+.wk-form-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #f1f5f9;
+    margin-top: 6px;
+}
+
+.btn-wk-cancel {
+    display: inline-block;
+    padding: 9px 16px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    color: #475569;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+}
+
+.btn-wk-cancel:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.btn-wk-save {
+    padding: 9px 18px;
+    border-radius: 8px;
+    background: #f59e0b;
+    color: #ffffff;
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-wk-save:hover {
+    background: #d97706;
+}

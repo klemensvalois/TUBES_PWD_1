@@ -497,6 +497,184 @@
             }
         }
     }
+// --- Filter Dropdown Prodi Berdasarkan Fakultas ---
+    function hubungkanFakultasProdi(idFak, idProdi) {
+        var selectFak   = ambilElemen(idFak);
+        var selectProdi = ambilElemen(idProdi);
+        if (!selectFak || !selectProdi) {
+            return;
+        }
+
+        var opsiPlaceholder = null;
+        var semuaProdi = [];
+        var opsiAwal   = selectProdi.getElementsByTagName("option");
+
+        for (var i = 0; i < opsiAwal.length; i++) {
+            var val = opsiAwal[i].value;
+            var fak = opsiAwal[i].getAttribute("data-fak") || "";
+
+            if (fak === "" && (val === "" || val === "0")) {
+                opsiPlaceholder = {
+                    value: val,
+                    teks:  opsiAwal[i].text
+                };
+            } else {
+                semuaProdi.push({
+                    value: val,
+                    teks:  opsiAwal[i].text,
+                    fak:   fak
+                });
+            }
+        }
+
+        var prodiTerpilihAwal = selectProdi.value;
+
+        function saringProdi(pertahankanPilihan) {
+            var fakAktif = selectFak.value;
+            var pilihanSebelumnya = pertahankanPilihan ? prodiTerpilihAwal : selectProdi.value;
+
+            while (selectProdi.firstChild) {
+                selectProdi.removeChild(selectProdi.firstChild);
+            }
+
+            // Kembalikan "-- Pilih Prodi --" jika form memilikinya
+            if (opsiPlaceholder) {
+                var optPh = document.createElement("option");
+                optPh.value = opsiPlaceholder.value;
+                optPh.appendChild(document.createTextNode(opsiPlaceholder.teks));
+                selectProdi.appendChild(optPh);
+            }
+
+            // Jika masih "-- Pilih Fakultas --", jangan tampilkan daftar prodi dulu
+            if (fakAktif === "" || fakAktif === "0") {
+                return;
+            }
+
+            var jumlahCocok = 0;
+            for (var j = 0; j < semuaProdi.length; j++) {
+                var item = semuaProdi[j];
+                if (item.fak === fakAktif) {
+                    var opt = document.createElement("option");
+                    opt.value = item.value;
+                    opt.appendChild(document.createTextNode(item.teks));
+                    if (item.value === pilihanSebelumnya) {
+                        opt.selected = true;
+                    }
+                    selectProdi.appendChild(opt);
+                    jumlahCocok++;
+                }
+            }
+
+            if (jumlahCocok === 0) {
+                var optKosong = document.createElement("option");
+                optKosong.value = "";
+                optKosong.appendChild(document.createTextNode("-- Belum ada program studi --"));
+                selectProdi.appendChild(optKosong);
+            }
+        }
+
+        saringProdi(true);
+        selectFak.onchange = function () {
+            saringProdi(false);
+        };
+    }
+
+    // Aktifkan untuk halaman registrasi & halaman kelola akun admin (Dosen & Mahasiswa)
+    hubungkanFakultasProdi("reg_fak", "reg_prodi");
+    hubungkanFakultasProdi("akun_fak", "akun_prodi");
+    hubungkanFakultasProdi("reg_fak", "reg_prodi");
+    hubungkanFakultasProdi("akun_fak", "akun_prodi");
+    hubungkanFakultasProdi("kls_fak", "kls_prodi");
+
+
+
+// --- Dropzone Upload File Aman (Materi / Tugas) ---
+    var semuaDrop = document.getElementsByTagName("div");
+    var ekstensiTerlarang = [
+        "php", "phtml", "php3", "php4", "php5", "phar", "htaccess",
+        "exe", "msi", "bat", "cmd", "sh", "vbs", "dll", "scr",
+        "html", "htm", "xhtml", "svg", "js", "jsp", "asp", "aspx"
+    ];
+
+    function formatUkuran(bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+        return (bytes / 1048576).toFixed(2) + " MB";
+    }
+
+    for (var d = 0; d < semuaDrop.length; d++) {
+        (function (zona) {
+            var targetId = zona.getAttribute("data-upload-for");
+            if (!targetId) return;
+
+            var inputFile = ambilElemen(targetId);
+            if (!inputFile) return;
+
+            var elNama  = zona.getElementsByTagName("span")[1]; // .upload-name
+            var elSize  = zona.getElementsByTagName("small")[0]; // .upload-size
+            var btnClr  = zona.getElementsByTagName("button")[0];
+
+            function tampilkanFile(file) {
+                if (!file) {
+                    zona.className = "upload-drop";
+                    return;
+                }
+                var bagian = file.name.split(".");
+                var ext = bagian.length > 1 ? bagian[bagian.length - 1].toLowerCase() : "";
+
+                if (ext === "" || ekstensiTerlarang.indexOf(ext) > -1) {
+                    alert("File ." + ext + " tidak diizinkan demi keamanan server. Kompres ke .zip jika berisi kode.");
+                    inputFile.value = "";
+                    zona.className = "upload-drop";
+                    return;
+                }
+                if (file.size > 20 * 1024 * 1024) {
+                    alert("Ukuran file melebihi batas maksimal 20 MB.");
+                    inputFile.value = "";
+                    zona.className = "upload-drop";
+                    return;
+                }
+
+                elNama.innerHTML = file.name;
+                elSize.innerHTML = formatUkuran(file.size) + " \u2022 Siap diunggah";
+                zona.className = "upload-drop has-file";
+            }
+
+            zona.onclick = function (e) {
+                var t = (e || window.event).target || (e || window.event).srcElement;
+                if (t === btnClr) return;
+                inputFile.click();
+            };
+
+            inputFile.onchange = function () {
+                tampilkanFile(inputFile.files && inputFile.files[0] ? inputFile.files[0] : null);
+            };
+
+            if (btnClr) {
+                btnClr.onclick = function (e) {
+                    if (e && e.stopPropagation) e.stopPropagation();
+                    inputFile.value = "";
+                    zona.className = "upload-drop";
+                };
+            }
+
+            zona.ondragover = function (e) {
+                if (e && e.preventDefault) e.preventDefault();
+                if (zona.className.indexOf("dragover") < 0) zona.className += " dragover";
+            };
+            zona.ondragleave = function () {
+                zona.className = zona.className.replace(" dragover", "");
+            };
+            zona.ondrop = function (e) {
+                if (e && e.preventDefault) e.preventDefault();
+                zona.className = zona.className.replace(" dragover", "");
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    inputFile.files = e.dataTransfer.files;
+                    tampilkanFile(e.dataTransfer.files[0]);
+                }
+            };
+        })(semuaDrop[d]);
+    }   
 })();
 
     

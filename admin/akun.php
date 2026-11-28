@@ -35,6 +35,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($no_id === '' || $nama === '' || $email === '' || $pass === '') {
                 throw new Exception('ID, nama, email, dan password wajib diisi.');
             }
+            if ($fak_id <= 0 || $prd_id <= 0) {
+                throw new Exception('Silakan pilih fakultas dan program studi.');
+            }
+            $cekProdi = q("SELECT id FROM lms_admin.prodi WHERE id=? AND fakultas_id=?", [$prd_id, $fak_id])->fetch();
+            if (!$cekProdi) {
+                throw new Exception('Program studi tidak sesuai dengan fakultas yang dipilih.');
+            }
 
             $hash = password_hash($pass, PASSWORD_DEFAULT);
             q("INSERT INTO {$tabel}({$kolom_id}, nama, email, fakultas_id, prodi_id, password) VALUES(?, ?, ?, ?, ?, ?)",
@@ -52,6 +59,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($id <= 0 || $no_id === '' || $nama === '' || $email === '') {
                 throw new Exception('Data edit tidak lengkap.');
             }
+            if ($fak_id <= 0 || $prd_id <= 0) {
+                throw new Exception('Silakan pilih fakultas dan program studi.');
+            }
+            $cekProdi = q("SELECT id FROM lms_admin.prodi WHERE id=? AND fakultas_id=?", [$prd_id, $fak_id])->fetch();
+            if (!$cekProdi) {
+                throw new Exception('Program studi tidak sesuai dengan fakultas yang dipilih.');
+            }
 
             if ($pass !== '') {
                 $hash = password_hash($pass, PASSWORD_DEFAULT);
@@ -62,12 +76,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                   [$no_id, $nama, $email, $fak_id, $prd_id, $id]);
             }
             flash('Akun berhasil diperbarui.');
-        } elseif ($aksi === 'del') {
-            $id = (int) ($_POST['i'] ?? 0);
-            if ($id > 0) {
-                q("DELETE FROM {$tabel} WHERE id=?", [$id]);
-                flash('Akun berhasil dihapus.');
-            }
         }
     } catch (Exception $ex) {
         flash($ex->getMessage());
@@ -85,7 +93,7 @@ if ($id_edit > 0) {
 $buka_form = ($data_edit !== null || (isset($_GET['new']) && $_GET['new'] === '1'));
 
 $daftar_fak   = q("SELECT id, nama FROM lms_admin.fakultas ORDER BY nama ASC")->fetchAll();
-$daftar_prodi = q("SELECT id, nama FROM lms_admin.prodi ORDER BY nama ASC")->fetchAll();
+$daftar_prodi = q("SELECT id, fakultas_id, nama FROM lms_admin.prodi ORDER BY nama ASC")->fetchAll();
 
 $map_fak = [];
 $n_df    = count($daftar_fak);
@@ -125,7 +133,7 @@ top($judul_hal, 'admin/akun.php?t=' . $jenis);
         <label>Nama <input type="text" name="nama" value="<?php echo e($val_nama); ?>" required="required" /></label>
         <label>Email <input type="email" name="email" value="<?php echo e($val_email); ?>" required="required" /></label>
         <label>Fakultas
-            <select name="fakultas_id">
+            <select id="akun_fak" name="fakultas_id">
                 <option value="0">-- Pilih Fakultas --</option>
                 <?php
                 for ($i = 0; $i < $n_df; $i++) {
@@ -137,13 +145,14 @@ top($judul_hal, 'admin/akun.php?t=' . $jenis);
             </select>
         </label>
         <label>Prodi
-            <select name="prodi_id">
+            <select id="akun_prodi" name="prodi_id">
                 <option value="0">-- Pilih Prodi --</option>
                 <?php
                 for ($i = 0; $i < $n_dp; $i++) {
-                    $p_id = (int) $daftar_prodi[$i]['id'];
-                    $sel  = ($p_id === $val_prd_id) ? ' selected="selected"' : '';
-                    echo '<option value="' . $p_id . '"' . $sel . '>' . e($daftar_prodi[$i]['nama']) . '</option>';
+                    $p_id  = (int) $daftar_prodi[$i]['id'];
+                    $p_fak = (int) $daftar_prodi[$i]['fakultas_id'];
+                    $sel   = ($p_id === $val_prd_id) ? ' selected="selected"' : '';
+                    echo '<option value="' . $p_id . '" data-fak="' . $p_fak . '"' . $sel . '>' . e($daftar_prodi[$i]['nama']) . '</option>';
                 }
                 ?>
             </select>

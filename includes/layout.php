@@ -55,10 +55,11 @@ function menu($role)
 
 function top($title, $active, $showTitle = true, $extraCss = [])
 {
-    $user  = $_SESSION['u'];
-    $menu  = menu($user['role']);
-    $label = isset($menu[$active][0]) ? $menu[$active][0] : $title;
-    $sub   = ($user['role'] === 'admin') ? 'Staff IT Universitas Atma Jaya Yogyakarta' : ucfirst($user['role']);
+    $user    = $_SESSION['u'];
+    $menu    = menu($user['role']);
+    $label   = isset($menu[$active][0]) ? $menu[$active][0] : $title;
+    $sub     = ($user['role'] === 'admin') ? 'Staff IT Universitas Atma Jaya Yogyakarta' : ucfirst($user['role']);
+    $fotoTop = !empty($user['foto']) ? (BASE . '/uploads/profil/' . e($user['foto'])) : '';
 
     echo '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">' . "\n";
     echo '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="id"><head>';
@@ -97,16 +98,28 @@ function top($title, $active, $showTitle = true, $extraCss = [])
         echo '<li><a href="' . BASE . '/' . $url . '"' . $class . '><i>' . $item[1] . '</i>' . $item[0] . '</a></li>';
     }
     echo '</ul>';
-    echo '<div class="me" style="padding:10px 14px;gap:10px;align-items:center;">';
-    echo '<span class="av" style="width:34px;height:34px;line-height:34px;font-size:13px;flex-shrink:0;">' . e(ini($user['nama'])) . '</span>';
-    echo '<div style="font-size:13px;line-height:1.3;">' . e($user['nama']) . '<small style="display:block;font-size:11px;margin-top:2px;">' . $sub . ' | <a href="' . BASE . '/logout.php">Log out</a></small></div>';
+    echo '<div class="sb-logout-wrap">';
+    echo '<a href="' . BASE . '/logout.php" class="sb-logout-btn"><span>Log out</span></a>';
     echo '</div>';
     echo '</aside>';
 
     echo '<main class="main">';
     echo '<header class="topbar">';
     echo '<span class="bc">&#9647; &nbsp;&#9734; &nbsp;&nbsp;<span class="mut">' . e($label) . '</span> &nbsp;/&nbsp; Overview</span>';
-    echo '<span class="tools"><span class="srch">Search &nbsp;&nbsp;&#8984;K</span> &#9788; &#8634; &#9750;</span>';
+    echo '<div class="tools" style="display:flex;align-items:center;gap:12px;">';
+    echo '<span class="srch">Search &nbsp;&nbsp;&#8984;K</span> &#9788; &#8634; &#9750;';
+    echo '<a href="' . BASE . '/profile.php" class="top-user" title="Buka Profil">';
+    echo '<span class="top-user-info">';
+    echo '<span class="top-user-name">' . e($user['nama']) . '</span>';
+    echo '<span class="top-user-role">' . e($sub) . '</span>';
+    echo '</span>';
+    if ($fotoTop !== '') {
+        echo '<img src="' . $fotoTop . '" alt="Foto Profil" class="top-user-av-img" />';
+    } else {
+        echo '<span class="top-user-av">' . e(ini($user['nama'])) . '</span>';
+    }
+    echo '</a>';
+    echo '</div>';
     echo '</header>';
     echo '<div class="content">';
 

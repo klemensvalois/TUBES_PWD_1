@@ -41,16 +41,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $kelas) {
         if ($judul === '') {
             flash('Judul materi wajib diisi.');
         } else {
-            $ext = '';
-            $ada_file = !empty($_FILES['berkas']['name']) && (int) $_FILES['berkas']['error'] === UPLOAD_ERR_OK;
+            $ext      = '';
+            $err_file = isset($_FILES['berkas']['error']) ? (int) $_FILES['berkas']['error'] : UPLOAD_ERR_NO_FILE;
+            $ada_file = ($err_file !== UPLOAD_ERR_NO_FILE && !empty($_FILES['berkas']['name']));
+
             if ($ada_file) {
-                $ext = strtolower(pathinfo($_FILES['berkas']['name'], PATHINFO_EXTENSION));
-                $boleh = ['pdf', 'ppt', 'pptx', 'doc', 'docx', 'zip'];
-                if (!in_array($ext, $boleh, true)) {
-                    flash('Format file harus PDF, PPT/PPTX, DOC/DOCX, atau ZIP.');
+                if ($err_file !== UPLOAD_ERR_OK) {
+                    flash('Gagal mengunggah file. Pastikan ukuran tidak melebihi batas server.');
+                    go('dosen/kelas.php?id=' . $id_kelas);
+                }
+                if ((int) $_FILES['berkas']['size'] > 20 * 1024 * 1024) {
+                    flash('Ukuran file maksimal 20 MB.');
+                    go('dosen/kelas.php?id=' . $id_kelas);
+                }
+                $ext   = strtolower(pathinfo($_FILES['berkas']['name'], PATHINFO_EXTENSION));
+                $boleh = [
+                    'pdf', 'doc', 'docx', 'odt', 'rtf', 'txt', 'md',
+                    'ppt', 'pptx', 'odp', 'xls', 'xlsx', 'ods', 'csv', 'json', 'xml', 'sql',
+                    'jpg', 'jpeg', 'png', 'gif', 'webp', 'drawio',
+                    'mp4', 'webm', 'mkv', 'mp3', 'wav', 'm4a',
+                    'zip', 'rar', '7z', 'tar', 'gz',
+                    'c', 'cpp', 'h', 'py', 'java', 'css', 'pkt', 'psd', 'ai', 'fig'
+                ];
+                if ($ext === '' || !in_array($ext, $boleh, true)) {
+                    flash('Format file .' . $ext . ' tidak diizinkan demi keamanan. Kompres file kode web (.php/.html/.js) ke .zip.');
                     go('dosen/kelas.php?id=' . $id_kelas);
                 }
             }
+
             q("INSERT INTO lms_dosen.materi(kelas_id, dosen_id, week, judul, isi) VALUES(?, ?, ?, ?, ?)", [$id_kelas, $id_dosen, $week, $judul, $isi]);
             $id_baru = (int) q("SELECT LAST_INSERT_ID() AS id")->fetch()['id'];
             if ($ada_file && $id_baru > 0) {
@@ -138,6 +156,7 @@ if (!$kelas) {
 $jml_week = max(1, (int) ($kelas['jml_week'] ?? 1));
 $add_m    = isset($_GET['add_m']) ? (int) $_GET['add_m'] : 0;
 $add_t    = isset($_GET['add_t']) ? (int) $_GET['add_t'] : 0;
+$edit_m   = isset($_GET['edit_m']) ? (int) $_GET['edit_m'] : 0;
 $edit_t   = isset($_GET['edit_t']) ? (int) $_GET['edit_t'] : 0;
 $ext_t    = isset($_GET['ext_t']) ? (int) $_GET['ext_t'] : 0;
 
@@ -188,34 +207,93 @@ for ($w = 1; $w <= $jml_week; $w++) {
             </div>
         </div>
 
-        <?php if ($add_m === $w) { ?>
-            <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" enctype="multipart/form-data" class="card" style="margin-top:10px">
-                <?php echo csrf(); ?>
-                <input type="hidden" name="a" value="addmateri" />
-                <input type="hidden" name="week" value="<?php echo $w; ?>" />
-                <b>Tambah Materi (Week <?php echo $w; ?>)</b>
-                <label>Judul <input type="text" name="judul" required="required" /></label>
-                <label>Isi / Tautan <textarea name="isi" rows="3" cols="50"></textarea></label>
-                <label>File (PDF, PPT, DOC, ZIP) <input type="file" name="berkas" accept=".pdf,.ppt,.pptx,.doc,.docx,.zip" /></label>
-                <button type="submit">Simpan</button>
-                <a class="btn" href="kelas.php?id=<?php echo $id_kelas; ?>">Batal</a>
-            </form>
+<?php if ($add_m === $w) { ?>
+            <div class="wk-form-card is-materi">
+                <div class="wk-form-head">
+                    <div class="wk-form-title">
+                        <span class="wk-badge materi">Materi</span>
+                        <span>Tambah Materi &mdash; Week <?php echo $w; ?></span>
+                    </div>
+                    <a class="wk-close" href="kelas.php?id=<?php echo $id_kelas; ?>" title="Tutup">&#215;</a>
+                </div>
+                <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" enctype="multipart/form-data">
+                    <?php echo csrf(); ?>
+                    <input type="hidden" name="a" value="addmateri" />
+                    <input type="hidden" name="week" value="<?php echo $w; ?>" />
+
+                    <div class="wk-field">
+                        <label for="m_judul">Judul Materi</label>
+                        <input type="text" id="m_judul" name="judul" placeholder="Contoh: Modul 2 - Normalisasi Database" required="required" />
+                    </div>
+
+                    <div class="wk-field">
+                        <label for="m_isi">Isi / Catatan / Tautan</label>
+                        <textarea id="m_isi" name="isi" rows="3" cols="50" placeholder="Tuliskan ringkasan materi atau tautan pendukung..."></textarea>
+                    </div>
+
+                    <div class="wk-field">
+                        <label for="m_file">Lampiran File (Opsional)</label>
+                        <input type="file" id="m_file" name="berkas" class="upload-hidden" />
+                        <div class="upload-drop" data-upload-for="m_file">
+                            <div class="upload-prompt">
+                                <strong>Klik untuk memilih file</strong> atau seret file ke sini
+                                <span class="upload-hint">Mendukung dokumen, slide, gambar, video, audio, kode, &amp; arsip (Maks. 20 MB &middot; File kode web kompres ke .zip)</span>
+                            </div>
+                            <div class="upload-preview">
+                                <div class="upload-meta">
+                                    <span class="upload-name"></span>
+                                    <small class="upload-size"></small>
+                                </div>
+                                <button type="button" class="upload-clear">Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wk-form-foot">
+                        <a class="btn-wk-cancel" href="kelas.php?id=<?php echo $id_kelas; ?>">Batal</a>
+                        <button type="submit" class="btn-wk-save">Simpan Materi</button>
+                    </div>
+                </form>
+            </div>
         <?php } ?>
 
         <?php if ($add_t === $w) { ?>
-            <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" class="card" style="margin-top:10px">
-                <?php echo csrf(); ?>
-                <input type="hidden" name="a" value="addtugas" />
-                <input type="hidden" name="week" value="<?php echo $w; ?>" />
-                <b>Tambah Tugas (Week <?php echo $w; ?>)</b>
-                <label>Judul <input type="text" name="judul" required="required" /></label>
-                <label>Deskripsi <textarea name="desc" rows="3" cols="50"></textarea></label>
-                <label>Deadline <input type="datetime-local" name="dl" required="required" /></label>
-                <button type="submit">Simpan</button>
-                <a class="btn" href="kelas.php?id=<?php echo $id_kelas; ?>">Batal</a>
-            </form>
-        <?php } ?>
+            <div class="wk-form-card is-tugas">
+                <div class="wk-form-head">
+                    <div class="wk-form-title">
+                        <span class="wk-badge tugas">Tugas</span>
+                        <span>Tambah Tugas &mdash; Week <?php echo $w; ?></span>
+                    </div>
+                    <a class="wk-close" href="kelas.php?id=<?php echo $id_kelas; ?>" title="Tutup">&#215;</a>
+                </div>
+                <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>">
+                    <?php echo csrf(); ?>
+                    <input type="hidden" name="a" value="addtugas" />
+                    <input type="hidden" name="week" value="<?php echo $w; ?>" />
 
+                    <div class="wk-grid-2">
+                        <div class="wk-field">
+                            <label for="t_judul">Judul Tugas</label>
+                            <input type="text" id="t_judul" name="judul" placeholder="Contoh: Tugas Praktikum 2" required="required" />
+                        </div>
+                        <div class="wk-field">
+                            <label for="t_dl">Deadline</label>
+                            <input type="datetime-local" id="t_dl" name="dl" required="required" />
+                        </div>
+                    </div>
+
+                    <div class="wk-field">
+                        <label for="t_desc">Deskripsi / Instruksi Tugas</label>
+                        <textarea id="t_desc" name="desc" rows="3" cols="50" placeholder="Jelaskan ketentuan pengerjaan dan format pengumpulan..."></textarea>
+                    </div>
+
+                    <div class="wk-form-foot">
+                        <a class="btn-wk-cancel" href="kelas.php?id=<?php echo $id_kelas; ?>">Batal</a>
+                        <button type="submit" class="btn-wk-save">Simpan Tugas</button>
+                    </div>
+                </form>
+            </div>
+        <?php } ?>
         <?php
         for ($i = 0; $i < $n_m; $i++) {
             $m = $materi[$i];
@@ -224,9 +302,10 @@ for ($w = 1; $w <= $jml_week; $w++) {
                 $f_cek = glob(dirname(__DIR__) . '/uploads/materi/m_' . (int) $m['id'] . '.*');
                 $f_nama = ($f_cek && isset($f_cek[0])) ? basename($f_cek[0]) : '';
                 ?>
-                <div style="margin-top:10px;padding-top:8px;border-top:1px solid #eee">
+               <div style="margin-top:10px;padding-top:8px;border-top:1px solid #eee">
                     <span class="tag">Materi</span> <b><?php echo e($m['judul']); ?></b>
-                    <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" style="display:inline;margin-left:6px">
+                    <a class="btn" href="kelas.php?id=<?php echo $id_kelas; ?>&amp;edit_m=<?php echo (int) $m['id']; ?>" style="margin-left:6px">Edit</a>
+                    <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" style="display:inline;margin-left:4px">
                         <?php echo csrf(); ?>
                         <input type="hidden" name="a" value="delmateri" />
                         <input type="hidden" name="i" value="<?php echo (int) $m['id']; ?>" />
@@ -237,6 +316,58 @@ for ($w = 1; $w <= $jml_week; $w++) {
                     <?php } ?>
                     <?php if ($f_nama !== '') { ?>
                         <p><a class="btn" href="<?php echo BASE . '/uploads/materi/' . e($f_nama); ?>" target="_blank">Unduh (<?php echo e($f_nama); ?>)</a></p>
+                    <?php } ?>
+
+                    <?php if ($edit_m === (int) $m['id']) { ?>
+                        <div class="wk-form-card is-materi">
+                            <div class="wk-form-head">
+                                <div class="wk-form-title">
+                                    <span class="wk-badge materi">Edit Materi</span>
+                                    <span>Edit Materi &mdash; <?php echo e($m['judul']); ?></span>
+                                </div>
+                                <a class="wk-close" href="kelas.php?id=<?php echo $id_kelas; ?>" title="Tutup">&#215;</a>
+                            </div>
+                            <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" enctype="multipart/form-data">
+                                <?php echo csrf(); ?>
+                                <input type="hidden" name="a" value="updmateri" />
+                                <input type="hidden" name="i" value="<?php echo (int) $m['id']; ?>" />
+
+                                <div class="wk-field">
+                                    <label for="em_judul">Judul Materi</label>
+                                    <input type="text" id="em_judul" name="judul" value="<?php echo e($m['judul']); ?>" required="required" />
+                                </div>
+
+                                <div class="wk-field">
+                                    <label for="em_isi">Isi / Catatan / Tautan</label>
+                                    <textarea id="em_isi" name="isi" rows="3" cols="50"><?php echo e($m['isi']); ?></textarea>
+                                </div>
+
+                                <div class="wk-field">
+                                    <label for="em_file">Ganti Lampiran File (Opsional)</label>
+                                    <input type="file" id="em_file" name="berkas" class="upload-hidden" />
+                                    <div class="upload-drop" data-upload-for="em_file">
+                                        <div class="upload-prompt">
+                                            <strong>Klik untuk memilih file baru</strong> atau seret file ke sini
+                                            <span class="upload-hint">
+                                                <?php echo ($f_nama !== '') ? ('File saat ini: ' . e($f_nama) . ' &middot; Biarkan kosong jika tidak ingin mengganti') : 'Mendukung dokumen, slide, gambar, video, audio, kode, &amp; arsip (Maks. 20 MB)'; ?>
+                                            </span>
+                                        </div>
+                                        <div class="upload-preview">
+                                            <div class="upload-meta">
+                                                <span class="upload-name"></span>
+                                                <small class="upload-size"></small>
+                                            </div>
+                                            <button type="button" class="upload-clear">Hapus</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="wk-form-foot">
+                                    <a class="btn-wk-cancel" href="kelas.php?id=<?php echo $id_kelas; ?>">Batal</a>
+                                    <button type="submit" class="btn-wk-save">Simpan Perubahan</button>
+                                </div>
+                            </form>
+                        </div>
                     <?php } ?>
                 </div>
                 <?php
@@ -278,31 +409,79 @@ for ($w = 1; $w <= $jml_week; $w++) {
                     <?php } ?>
 
                     <?php if ($edit_t === $tid) { ?>
-                        <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" class="card" style="margin-top:10px">
-                            <?php echo csrf(); ?>
-                            <input type="hidden" name="a" value="updtugas" />
-                            <input type="hidden" name="i" value="<?php echo $tid; ?>" />
-                            <b>Edit Tugas</b>
-                            <label>Judul <input type="text" name="judul" value="<?php echo e($t['judul']); ?>" required="required" /></label>
-                            <label>Deskripsi <textarea name="desc" rows="3" cols="50"><?php echo e($t['deskripsi']); ?></textarea></label>
-                            <label>Deadline <input type="datetime-local" name="dl" value="<?php echo date('Y-m-d\TH:i', strtotime($t['deadline'])); ?>" required="required" /></label>
-                            <button type="submit">Simpan Perubahan</button>
-                            <a class="btn" href="kelas.php?id=<?php echo $id_kelas; ?>">Batal</a>
-                        </form>
+                        <div class="wk-form-card is-tugas">
+                            <div class="wk-form-head">
+                                <div class="wk-form-title">
+                                    <span class="wk-badge tugas">Edit Tugas</span>
+                                    <span>Edit Tugas &mdash; <?php echo e($t['judul']); ?></span>
+                                </div>
+                                <a class="wk-close" href="kelas.php?id=<?php echo $id_kelas; ?>" title="Tutup">&#215;</a>
+                            </div>
+                            <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>">
+                                <?php echo csrf(); ?>
+                                <input type="hidden" name="a" value="updtugas" />
+                                <input type="hidden" name="i" value="<?php echo $tid; ?>" />
+
+                                <div class="wk-grid-2">
+                                    <div class="wk-field">
+                                        <label for="et_judul">Judul Tugas</label>
+                                        <input type="text" id="et_judul" name="judul" value="<?php echo e($t['judul']); ?>" required="required" />
+                                    </div>
+                                    <div class="wk-field">
+                                        <label for="et_dl">Deadline</label>
+                                        <input type="datetime-local" id="et_dl" name="dl" value="<?php echo date('Y-m-d\TH:i', strtotime($t['deadline'])); ?>" required="required" />
+                                    </div>
+                                </div>
+
+                                <div class="wk-field">
+                                    <label for="et_desc">Deskripsi / Instruksi Tugas</label>
+                                    <textarea id="et_desc" name="desc" rows="3" cols="50"><?php echo e($t['deskripsi']); ?></textarea>
+                                </div>
+
+                                <div class="wk-form-foot">
+                                    <a class="btn-wk-cancel" href="kelas.php?id=<?php echo $id_kelas; ?>">Batal</a>
+                                    <button type="submit" class="btn-wk-save">Simpan Perubahan</button>
+                                </div>
+                            </form>
+                        </div>
                     <?php } ?>
 
                     <?php if ($ext_t === $tid) { ?>
-                        <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>" class="card" style="margin-top:10px">
-                            <?php echo csrf(); ?>
-                            <input type="hidden" name="a" value="ext" />
-                            <input type="hidden" name="i" value="<?php echo $tid; ?>" />
-                            <b>Beri Waktu Tambahan: <?php echo e($t['judul']); ?></b>
-                            <label>NPM atau Email Mahasiswa <input type="text" name="who" placeholder="NPM atau email mahasiswa" required="required" /></label>
-                            <label>Deadline Baru <input type="datetime-local" name="dl" required="required" /></label>
-                            <label>Alasan <input type="text" name="alasan" placeholder="Alasan (sakit, dll)" /></label>
-                            <button type="submit">Simpan Perpanjangan</button>
-                            <a class="btn" href="kelas.php?id=<?php echo $id_kelas; ?>">Batal</a>
-                        </form>
+                        <div class="wk-form-card is-tugas">
+                            <div class="wk-form-head">
+                                <div class="wk-form-title">
+                                    <span class="wk-badge tugas">Perpanjangan</span>
+                                    <span>Waktu Tambahan &mdash; <?php echo e($t['judul']); ?></span>
+                                </div>
+                                <a class="wk-close" href="kelas.php?id=<?php echo $id_kelas; ?>" title="Tutup">&#215;</a>
+                            </div>
+                            <form method="post" action="kelas.php?id=<?php echo $id_kelas; ?>">
+                                <?php echo csrf(); ?>
+                                <input type="hidden" name="a" value="ext" />
+                                <input type="hidden" name="i" value="<?php echo $tid; ?>" />
+
+                                <div class="wk-grid-2">
+                                    <div class="wk-field">
+                                        <label for="ex_who">NPM atau Email Mahasiswa</label>
+                                        <input type="text" id="ex_who" name="who" placeholder="NPM atau email mahasiswa" required="required" />
+                                    </div>
+                                    <div class="wk-field">
+                                        <label for="ex_dl">Deadline Baru</label>
+                                        <input type="datetime-local" id="ex_dl" name="dl" required="required" />
+                                    </div>
+                                </div>
+
+                                <div class="wk-field">
+                                    <label for="ex_alasan">Alasan</label>
+                                    <input type="text" id="ex_alasan" name="alasan" placeholder="Alasan (sakit, izin, dll)" />
+                                </div>
+
+                                <div class="wk-form-foot">
+                                    <a class="btn-wk-cancel" href="kelas.php?id=<?php echo $id_kelas; ?>">Batal</a>
+                                    <button type="submit" class="btn-wk-save">Simpan Perpanjangan</button>
+                                </div>
+                            </form>
+                        </div>
                     <?php } ?>
                 </div>
                 <?php
